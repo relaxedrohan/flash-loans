@@ -1,0 +1,28 @@
+{
+  "name": "profitable-flashloans",
+  "version": "1.0.0",
+  "description": "",
+  "main": "runArbitrage.js",
+  "scripts": {
+    "dev": "nodemon runArbitrage.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rohanyadav420/flash-loans.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rohanyadav420/flash-loans/issues"
+  },
+  "homepage": "https://github.com/rohanyadav420/flash-loans#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "web3": "^1.5.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
