@@ -35,15 +35,6 @@ const init = async () => {
     daiWeth.getOutputAmount(new TokenAmount(weth, AMOUNT_ETH_WEI)),
   ]);
 
-  const uniswapRates = {
-    buy: parseFloat(
-      AMOUNT_DAI_WEI / (uniswapResults[0][0].toExact() * 10 ** 18)
-    ),
-    sell: parseFloat(uniswapResults[1][0].toExact() / AMOUNT_ETH),
-  };
-  console.log(`Uniswap rates ETH/DAi`);
-  console.log(uniswapRates);
-
   /**
    * @param - String - The subscription you want to subscribe to.
    * @returns EventEmitter - A Subscription instance
@@ -76,6 +67,14 @@ const init = async () => {
       };
       console.log(`kyber ETH/DAI : `);
       console.log(kyberRates);
+      const uniswapRates = {
+        buy: parseFloat(
+          AMOUNT_DAI_WEI / (uniswapResults[0][0].toExact() * 10 ** 18)
+        ),
+        sell: parseFloat(uniswapResults[1][0].toExact() / AMOUNT_ETH),
+      };
+      console.log(`Uniswap rates ETH/DAi`);
+      console.log(uniswapRates);
     })
     .on("error", (error) => console.log(error));
 };
