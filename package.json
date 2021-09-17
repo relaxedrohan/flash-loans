@@ -19,6 +19,10 @@
   },
   "homepage": "https://github.com/rohanyadav420/flash-loans#readme",
   "dependencies": {
+    "@ethersproject/contracts": "^5.4.1",
+    "@ethersproject/providers": "^5.4.5",
+    "@ethersproject/solidity": "^5.4.0",
+    "@uniswap/sdk": "^2.0.6",
     "dotenv": "^10.0.0",
     "web3": "^1.5.2"
   },

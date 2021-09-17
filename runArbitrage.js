@@ -1,11 +1,14 @@
 const Web3 = require("web3");
 const env = require("./env");
-
+const { ChainId, Token, TokenAmount, Pair } = require("@uniswap/sdk");
 const abis = require("./abis");
 const { mainnet: addresses } = require("./addresses");
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(env.infuraURL));
 
+/**
+ *
+ */
 const kyber = new web3.eth.Contract(
   abis.kyber.kyberNetworkProxy,
   addresses.kyber.kyberNetworkProxy
@@ -18,30 +21,64 @@ const AMOUNT_DAI_WEI = web3.utils.toWei(
   (AMOUNT_ETH * RECENT_ETH_PRICE).toString()
 );
 
-web3.eth
-  .subscribe("newBlockHeaders")
-  .on("data", async (block) => {
-    console.log(`New Block recieved: ${block.number}`);
+const init = async () => {
+  const [dai, weth] = await Promise.all(
+    [addresses.tokens.dai, addresses.tokens.weth].map((tokenAdddresses) =>
+      Token.fetchData(ChainId.MAINNET, tokenAdddresses)
+    )
+  );
 
-    const kyberResults = await Promise.all([
-      kyber.methods
-        .getExpectedRate(
-          addresses.tokens.dai,
-          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-          AMOUNT_DAI_WEI
-        )
-        .call(),
-      kyber.methods
-        .getExpectedRate(
-          addresses.tokens.dai,
-          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-          AMOUNT_ETH_WEI
-        )
-        .call(),
-    ]);
+  const daiWeth = await Pair.fetchData(dai, weth);
 
-    console.log(kyberResults);
-  })
-  .on("error", (error) => console.log(error));
+  const uniswapResults = await Promise.all([
+    daiWeth.getOutputAmount(new TokenAmount(dai, AMOUNT_DAI_WEI)),
+    daiWeth.getOutputAmount(new TokenAmount(weth, AMOUNT_ETH_WEI)),
+  ]);
+
+  const uniswapRates = {
+    buy: parseFloat(
+      AMOUNT_DAI_WEI / (uniswapResults[0][0].toExact() * 10 ** 18)
+    ),
+    sell: parseFloat(uniswapResults[1][0].toExact() / AMOUNT_ETH),
+  };
+  console.log(`Uniswap rates ETH/DAi`);
+  console.log(uniswapRates);
+
+  /**
+   * @param - String - The subscription you want to subscribe to.
+   * @returns EventEmitter - A Subscription instance
+   */
+  web3.eth
+    .subscribe("newBlockHeaders")
+    .on("data", async (block) => {
+      console.log(`New Block recieved: ${block.number}`);
+
+      const kyberResults = await Promise.all([
+        kyber.methods
+          .getExpectedRate(
+            addresses.tokens.dai,
+            "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            AMOUNT_DAI_WEI
+          )
+          .call(),
+        kyber.methods
+          .getExpectedRate(
+            "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            addresses.tokens.dai,
+            AMOUNT_ETH_WEI
+          )
+          .call(),
+      ]);
+
+      const kyberRates = {
+        buy: parseFloat(1 / (kyberResults[0].expectedRate / 10 ** 18)),
+        sell: parseFloat(kyberResults[1].expectedRate / 10 ** 18),
+      };
+      console.log(`kyber ETH/DAI : `);
+      console.log(kyberRates);
+    })
+    .on("error", (error) => console.log(error));
+};
+init();
 
 console.log(`Server is running on port : ${env.PORT}`);
